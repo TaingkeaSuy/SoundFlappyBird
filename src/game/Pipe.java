@@ -4,56 +4,81 @@ import java.awt.*;
 import java.util.Random;
 
 public class Pipe {
-
-    private int x;
-    private final int width = 60;
-    private final int gap = 160;
-    private final int speed = 3;
-
+    // 1. DIMENSIONS FOR 1080x566
+    public int x = 1080;
+    public int width = 90;          // Slightly wider for the wide screen
+    private int gap = 180;          // Comfortable gap for 566px height
     private int topHeight;
-    private int bottomY;
 
-    private final Random random = new Random();
+    public boolean isPassed = false;
+    private Random random = new Random();
+
+    // Colors
+    private final Color PIPE_GREEN = new Color(115, 190, 46);
+    private final Color PIPE_DARK = new Color(83, 128, 34);
+    private final Color PIPE_LIGHT = new Color(173, 230, 110);
+    private final Color PIPE_BORDER = new Color(25, 18, 20);
 
     public Pipe() {
-        reset();
-    }
-
-    public void reset() {
-        x = 400;
-        topHeight = 80 + random.nextInt(200);
-        bottomY = topHeight + gap;
+        // 2. ADJUSTED HEIGHT RANGE
+        // Minimum height 50, maximum height around 330 to leave room for the gap
+        topHeight = random.nextInt(280) + 50;
     }
 
     public void update() {
-        x -= speed;
+        // 3. SPEED ADJUSTMENT
+        x -= 6; // Balanced speed for 1080 width
+
         if (x + width < 0) {
-            reset();
+            x = GamePanel.WIDTH;
+            topHeight = random.nextInt(280) + 50;
+            isPassed = false;
         }
     }
 
+    public void draw(Graphics2D g2d) {
+        drawStyledPipe(g2d, x, 0, width, topHeight, true);
+        drawStyledPipe(g2d, x, topHeight + gap, width, GamePanel.HEIGHT - (topHeight + gap), false);
+    }
+
+    private void drawStyledPipe(Graphics2D g2d, int x, int y, int w, int h, boolean isTop) {
+        // Main Body
+        g2d.setColor(PIPE_GREEN);
+        g2d.fillRect(x, y, w, h);
+
+        // Shading
+        g2d.setColor(PIPE_LIGHT);
+        g2d.fillRect(x + 8, y, 15, h);
+        g2d.setColor(PIPE_DARK);
+        g2d.fillRect(x + w - 23, y, 15, h);
+
+        // 4. SCALED PIPE LIP
+        int lipWidth = w + 16;
+        int lipHeight = 35;
+        int lipX = x - 8;
+        int lipY = isTop ? (y + h - lipHeight) : y;
+
+        g2d.setColor(PIPE_BORDER);
+        g2d.setStroke(new BasicStroke(4));
+        g2d.drawRect(lipX, lipY, lipWidth, lipHeight);
+
+        g2d.setColor(PIPE_GREEN);
+        g2d.fillRect(lipX + 2, lipY + 2, lipWidth - 4, lipHeight - 4);
+
+        g2d.setColor(PIPE_LIGHT);
+        g2d.fillRect(lipX + 10, lipY + 4, 15, lipHeight - 8);
+
+        // Final Outline
+        g2d.setColor(PIPE_BORDER);
+        g2d.drawRect(x, y, w, h);
+    }
+
     public boolean collides(Bird bird) {
-        Rectangle topPipe = new Rectangle(x, 0, width, topHeight);
-        Rectangle bottomPipe = new Rectangle(x, bottomY, width, 600);
-
-        return topPipe.intersects(bird.getBounds()) ||
-                bottomPipe.intersects(bird.getBounds());
+        Rectangle birdRect = bird.getBounds();
+        return birdRect.intersects(new Rectangle(x, 0, width, topHeight)) ||
+                birdRect.intersects(new Rectangle(x, topHeight + gap, width, GamePanel.HEIGHT));
     }
 
-    public void draw(Graphics g) {
-        // Pipe body
-        g.setColor(new Color(34, 177, 76));
-        g.fillRect(x, 0, width, topHeight);
-        g.fillRect(x, bottomY, width, 600);
-
-        // Pipe borders
-        g.setColor(Color.BLACK);
-        g.drawRect(x, 0, width, topHeight);
-        g.drawRect(x, bottomY, width, 600);
-
-        // Pipe heads (Flappy Bird style)
-        g.setColor(new Color(0, 155, 0));
-        g.fillRect(x - 5, topHeight - 15, width + 10, 15);
-        g.fillRect(x - 5, bottomY, width + 10, 15);
-    }
+    public int getX() { return x; }
+    public int getWidth() { return width; }
 }
