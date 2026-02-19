@@ -5,7 +5,7 @@ import java.awt.geom.AffineTransform;
 
 public class Bird {
     // 1. POSITION & SIZE
-    public double x = 150, y = 200;
+    public double x = 0, y = 200;
     public int width = 60, height = 45; // Proportional to 566 height
 
     private double velocity = 0;
